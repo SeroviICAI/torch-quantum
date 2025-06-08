@@ -31,7 +31,16 @@ Current quantum SDKs expose powerful primitives but leave many “deep-learning 
 ### Installation
 
 ```bash
-pip install git+https://github.com/SeroviICAI/cuda-quantum.git
+python -m pip install --upgrade pip
+pip install cudaq
+git clone https://github.com/SeroviICAI/cuda-quantum.git
+python - <<'PY'
+import importlib.util, pathlib, os, shutil
+src = pathlib.Path("cuda-quantum/python/cudaq/kernel/quake_value.py").resolve()
+dst = pathlib.Path(importlib.util.find_spec("cudaq.kernel.quake_value").origin)
+dst.unlink()
+os.symlink(src, dst)
+PY
 pip install torch-qu
 ```
 
