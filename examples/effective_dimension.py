@@ -22,6 +22,7 @@ def plot_hist_with_inset(panel, values, colour, title):
     panel.set(title=title, xlabel="eigenvalue size")
     if "classical" in title:
         panel.set_ylabel("normalised counts")
+    panel.set_ylim(0, 1)
 
     # Inset showing distribution of first-bin values
     first_bin_mask = (vals_np >= bins[0]) & (vals_np < bins[1])
@@ -38,6 +39,7 @@ def plot_hist_with_inset(panel, values, colour, title):
     inset.set_ylabel("norm. counts", fontsize=7)
     inset.tick_params(axis="both", labelsize=6)
     inset.set_title("first bin", fontsize=8)
+    inset.set_ylim(0, 1)
 
 
 def main() -> None:
@@ -48,8 +50,8 @@ def main() -> None:
       2. Figure 3 - Normalised effective dimension vs number of data points (n) for a FCN and QNN.
 
     All experiments use only the QNN and ParamMatchedFCN models (no hybrid or "easy" quantum models).
-    QNN parameters follow the configuration from train.py: in_features=$s_{in}$, out_features=$s_{out}$, num_layers=3
-    (unless otherwise noted for specific experiments), shots=1024, feature_map="z", var_form="efficientsu2", reupload=False.
+    QNN parameters follow the configuration from train.py: in_features=$s_{in}$, out_features=$s_{out}$, num_layers=6
+    (unless otherwise noted for specific experiments), shots=2048, feature_map="z", var_form="realamplitudes", reupload=False.
     """
     # Ensure reproducibility
     set_seed(42)
@@ -60,12 +62,12 @@ def main() -> None:
     else:
         cudaq.set_target("qpp-cpu")
 
-    # 1. Figure 2: Fisher information eigenvalue spectrum histograms for FCN vs QNN (d≈40, s_in=4, s_out=3).
+    # 1. Figure 2: Fisher information eigenvalue spectrum histograms for FCN vs QNN (d≈28, s_in=4, s_out=3).
     print("Generating Figure 2 (Fisher information spectrum)...")
     s_in = 4
     s_out = 3
     n_layers = 6
-    # Initialize QNN and classical model with parameter count ~40
+    # Initialize QNN and classical model with parameter count 28
     # Use QNN with default parameters (num_layers=3) and count its parameters
     model_qnn = QNN(
         in_features=s_in,
@@ -129,19 +131,10 @@ def main() -> None:
     fhat_fcn_batch, fhat_qnn_batch = map(
         torch.stack, (fhat_fcn_list, fhat_qnn_list)
     )
-    torch.save(eigvals_fcn, "results/data/eigvals_fcn.pt")
-    torch.save(eigvals_qnn, "results/data/eigvals_qnn.pt")
-    torch.save(fhat_fcn_list, "results/data/fhat_fcn.pt")
-    torch.save(fhat_qnn_list, "results/data/fhat_qnn.pt")
-
-    # eigvals_fcn, eigvals_qnn, fhat_fcn_batch, fhat_qnn_batch = map(
-    #     lambda f: torch.load(f, weights_only=True), (
-    #         "results/data/eigvals_fcn.pt",
-    #         "results/data/eigvals_qnn.pt",
-    #         "results/data/fhat_fcn.pt",
-    #         "results/data/fhat_qnn.pt"
-    #     )
-    # )
+    torch.save(eigvals_fcn, "results/data/information_geometry/eigvals_fcn.pt")
+    torch.save(eigvals_qnn, "results/data/information_geometry/eigvals_qnn.pt")
+    torch.save(fhat_fcn_list, "results/data/information_geometry/fhat_fcn.pt")
+    torch.save(fhat_qnn_list, "results/data/information_geometry/fhat_qnn.pt")
 
     # Plot histograms of eigenvalue spectra
     fig2, ax = plt.subplots(1, 2, figsize=(8, 4), dpi=1000)
@@ -152,7 +145,7 @@ def main() -> None:
     plt.close(fig2)
     print("Figure 2 saved in to results/images/fisher_information_spectrum.png")
 
-    # 2. Figure 3: Normalised effective dimension vs number of data points for QNN vs FCN (d≈40, s_in=4, s_out=2).
+    # 2. Figure 3: Normalised effective dimension vs number of data points for QNN vs FCN (d≈28, s_in=4, s_out=2).
     print("Generating Figure 3 (Normalised effective dimension vs number of data)...")
 
     # Define range of number of data points (n) to evaluate effective dimension
@@ -175,11 +168,13 @@ def main() -> None:
     ax3.set_xlabel("number of data")
     ax3.set_ylabel("normalised effective dimension $d_{\\text{eff}}/d$")
     ax3.legend(loc="lower right")
+    ax3.grid(True)
     ax3.set_xlim([0, n_values.max()])
+    ax3.set_ylim([0, 1])
     fig3.tight_layout()
-    plt.savefig("results/images/normalised_effective_dimension.png")
+    plt.savefig("results/images/information_geometry/normalised_effective_dimension.png")
     plt.close(fig3)
-    print("Figure 3 saved to results/images/normalised_effective_dimension.png")
+    print("Figure 3 saved to results/images/information_geometry/normalised_effective_dimension.png")
 
 
 if __name__ == "__main__":
