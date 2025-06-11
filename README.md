@@ -47,7 +47,7 @@ pip install torch-qu
 ### Quick example (4-qubit classifier)
 ```python
 import torch, torch.nn as nn, torch.optim as optim
-from torch_quantum.nn import QNN
+from torchq.models import QNN
 import cudaq
 
 # Use fast GPU simulator if available
